@@ -1,1 +1,1 @@
-# UrBoiTom.github.io
+# [Card Generator](/Card-Generator)
