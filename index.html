@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrBoiTom's AI Tools</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 960px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eaecef;
+            padding-bottom: 10px;
+        }
+        .projects-list {
+            list-style: none;
+            padding: 0;
+        }
+        .projects-list li {
+            margin-bottom: 15px;
+        }
+        .projects-list a {
+            text-decoration: none;
+            color: #2980b9;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        .projects-list a:hover {
+            color: #3498db;
+        }
+        .projects-list p {
+            margin: 5px 0 0 0;
+            color: #7f8c8d;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .gallery-item {
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .gallery-item img {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-item-title {
+            padding: 10px;
+            background: #ecf0f1;
+            text-align: center;
+            font-weight: bold;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-body h3 {
+            margin-top: 0;
+        }
+        .modal-body pre {
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>UrBoiTom's AI Tools</h1>
+        <p>Welcome! This is a hub for various AI-powered tools and projects. Explore the tools and see some examples of what they can create.</p>
+
+        <h2>Projects</h2>
+        <ul class="projects-list">
+            <li>
+                <a href="/Card-Generator/">AI Character Card Generator</a>
+                <p>A tool to generate detailed character cards for AI chatbots using Google's Gemini models.</p>
+                <p>Here are some characters created with the AI Character Card Generator. Click on any character to see their details.</p>
+                <div class="gallery" id="example-gallery">
+                    <!-- Example characters will be injected here by JavaScript -->
+                    <!-- You can add more characters to the `examples` array in the script below -->
+                </div>
+            </li>
+            <!-- You can add more projects here in the future -->
+        </ul>
+
+        <footer>
+            <p>
+                <a href="terms.html">Terms of Use</a>
+            </p>
+        </footer>
+        
+    </div>
+
+    <div class="modal-overlay" id="gallery-modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modal-close-button">&times;</span>
+            <div class="modal-body" id="modal-body-content">
+                <!-- Modal content will be injected here -->
+            </div>
+        </div>
+    </div>
+    <style>
+        footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+
+    <script>
+        const gallery = document.getElementById('example-gallery');
+        const modal = document.getElementById('gallery-modal');
+        const modalBody = document.getElementById('modal-body-content');
+        const closeModalButton = document.getElementById('modal-close-button');
+        let loadedExamples = [];
+
+        async function loadGallery() {
+            try {
+                // 1. Fetch the index of example files
+                const response = await fetch('examples/index.json');
+                if (!response.ok) throw new Error(`Failed to load examples index: ${response.statusText}`);
+                const exampleFiles = await response.json();
+
+                // 2. Fetch the data for each example
+                const examplePromises = exampleFiles.map(async (basename) => {
+                    const res = await fetch(`examples/${basename}.json`);
+                    if (!res.ok) {
+                        console.warn(`Could not load ${basename}.json. Skipping.`);
+                        return null;
+                    }
+                    const data = await res.json();
+                    // The image is inferred from the basename
+                    data.image = `examples/${basename}.webp`;
+                    return data;
+                });
+
+                loadedExamples = (await Promise.all(examplePromises)).filter(ex => ex !== null);
+
+                // 3. Render the gallery
+                renderGallery();
+
+            } catch (error) {
+                console.error("Error loading example gallery:", error);
+                gallery.innerHTML = '<p>Could not load the example gallery.</p>';
+            }
+        }
+
+        function renderGallery() {
+            gallery.innerHTML = ''; // Clear previous content
+            loadedExamples.forEach((ex, index) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.innerHTML = `<img src="${ex.image}" alt="${ex.data.name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/808080/FFFFFF?text=No+Image';"><div class="gallery-item-title">${ex.data.name}</div>`;
+                item.onclick = () => openModal(index);
+                gallery.appendChild(item);
+            });
+        }
+
+        function openModal(index) {
+            const ex = loadedExamples[index];
+            const alternateGreetings = ex.data.alternate_greetings || [];
+            const greetingsHTML = alternateGreetings
+                .map((g, i) => `
+                    <details>
+                        <summary>Alternate Greeting ${i + 1}</summary>
+                        <pre>${g}</pre>
+                    </details>
+                `)
+                .join('');
+
+            modalBody.innerHTML = `
+                <h3>${ex.data.name}</h3>
+                <h4>Description</h4>
+                <pre>${ex.data.description}</pre>
+                <h4>First Message</h4>
+                <pre>${ex.data.first_mes}</pre>
+                ${greetingsHTML ? `<h4>Alternate Greetings</h4>${greetingsHTML}` : ''}
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        closeModalButton.onclick = closeModal;
+        modal.onclick = (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadGallery);
+    </script>
+
+</body>
+</html>

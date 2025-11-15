@@ -1,1 +1,0 @@
-# [Card Generator](/Card-Generator)
