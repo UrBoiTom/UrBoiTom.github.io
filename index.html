@@ -72,12 +72,24 @@
             gap: 15px;
             margin-top: 20px;
         }
+        @keyframes jumpIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
         .gallery-item {
             cursor: pointer;
             border: 1px solid #ddd;
             border-radius: 4px;
             overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
+            opacity: 0; /* Start hidden for animation */
+            animation: jumpIn 0.5s ease-out forwards;
         }
         .gallery-item:hover {
             transform: scale(1.05);
@@ -223,7 +235,8 @@
                 const name = ex.name || 'Unnamed';
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
-                item.innerHTML = `<img src="${ex.image}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/808080/FFFFFF?text=No+Image';"><div class="gallery-item-title">${name}</div>`;
+                item.style.animationDelay = `${index * 100}ms`; // Stagger the animation
+                item.innerHTML = `<img src="${ex.image}" alt="${name}" loading="lazy" style="opacity:0" onload="this.style.opacity=1" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/808080/FFFFFF?text=No+Image';this.style.opacity=1;"><div class="gallery-item-title">${name}</div>`;
                 item.onclick = () => openModal(index);
                 gallery.appendChild(item);
             });
