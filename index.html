@@ -220,32 +220,32 @@
         function renderGallery() {
             gallery.innerHTML = ''; // Clear previous content
             loadedExamples.forEach((ex, index) => {
+                const name = ex.name || 'Unnamed';
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
-                item.innerHTML = `<img src="${ex.image}" alt="${ex.data.name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/808080/FFFFFF?text=No+Image';"><div class="gallery-item-title">${ex.data.name}</div>`;
+                item.innerHTML = `<img src="${ex.image}" alt="${name}" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/808080/FFFFFF?text=No+Image';"><div class="gallery-item-title">${name}</div>`;
                 item.onclick = () => openModal(index);
                 gallery.appendChild(item);
             });
         }
 
         function openModal(index) {
-            const ex = loadedExamples[index];
-            const alternateGreetings = ex.data.alternate_greetings || [];
+            const { name, description, first_mes, alternate_greetings: alternateGreetings = [] } = loadedExamples[index];
             const greetingsHTML = alternateGreetings
                 .map((g, i) => `
                     <details>
                         <summary>Alternate Greeting ${i + 1}</summary>
-                        <pre>${g}</pre>
+                        <pre>${g.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
                     </details>
                 `)
                 .join('');
 
             modalBody.innerHTML = `
-                <h3>${ex.data.name}</h3>
+                <h3>${name}</h3>
                 <h4>Description</h4>
-                <pre>${ex.data.description}</pre>
+                <pre>${description}</pre>
                 <h4>First Message</h4>
-                <pre>${ex.data.first_mes}</pre>
+                <pre>${first_mes}</pre>
                 ${greetingsHTML ? `<h4>Alternate Greetings</h4>${greetingsHTML}` : ''}
             `;
             modal.style.display = 'flex';
